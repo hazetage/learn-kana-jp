@@ -144,7 +144,7 @@
         </div>
         <!-- All Kana -->
         <div class="max-w-5xl mx-auto mb-6">
-            <button id="btn-all-kana" class="w-full btn-p rounded-xl px-6 py-3.5 text-white font-semibold text-sm flex items-center justify-center gap-3 shadow-lg shadow-sakura-500/20 transition-all">
+            <button id="btn-all-kana" class="w-full btn-p rounded-xl px-10 py-3.5 text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-sakura-500/20 transition-all">
                 <span class="all-check"><div class="w-5 h-5 rounded border-2 border-white/50 flex-shrink-0"></div></span>
                 Select All Kana
             </button>
@@ -174,8 +174,8 @@
             </div>
         </div>
         <!-- Start -->
-        <div class="max-w-5xl mx-auto mt-8 text-center">
-            <button id="btn-start-quiz" class="w-full sm:w-auto btn-s rounded-xl px-12 py-4 text-white font-bold text-lg shadow-lg shadow-fuji-500/20" style="opacity:0.5;pointer-events:none">Start Quiz →</button>
+        <div class="max-w-5xl mx-auto mt-8 flex justify-center">
+            <button id="btn-start-quiz" class="w-full sm:w-auto btn-p rounded-xl px-10 py-3.5 text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-sakura-500/20 transition-all" style="opacity:0.5;pointer-events:none">Start Quiz → <span class="text-white/50 text-xs ml-1 font-medium">[Enter]</span></button>
         </div>
     </section>
 
@@ -211,8 +211,9 @@
                 <div class="mode-check hidden mt-4 text-sakura-400 text-xs font-medium">✓ Selected</div>
             </div>
         </div>
-        <div class="text-center mt-8">
-            <button id="btn-begin-quiz" class="btn-p rounded-xl px-10 py-3.5 text-white font-bold shadow-lg shadow-sakura-500/20">Begin Quiz →</button>
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
+            <button onclick="goHome()" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 transition-all">Home <span class="text-gray-500 text-xs ml-1 font-medium">[Esc]</span></button>
+            <button id="btn-begin-quiz" class="w-full sm:w-auto btn-p rounded-xl px-10 py-3.5 text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-sakura-500/20 transition-all">Begin Quiz → <span class="text-white/50 text-xs ml-1 font-medium">[Enter]</span></button>
         </div>
     </section>
 
@@ -233,7 +234,7 @@
         </div>
         <div id="sheet-content"></div>
         <div class="text-center mt-6">
-            <button onclick="goHome()" class="glass glass-h rounded-xl px-6 py-2.5 text-gray-300 font-medium text-sm flex items-center gap-2 mx-auto transition-all"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>Back to Home <span class="text-gray-600 text-[10px] ml-1">[Esc]</span></button>
+            <button onclick="goHome()" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 mx-auto transition-all">Home <span class="text-gray-500 text-xs ml-1 font-medium">[Esc]</span></button>
         </div>
     </section>
 
@@ -256,8 +257,8 @@
             <h3 class="text-lg font-bold text-white mb-2">Go Home?</h3>
             <p class="text-gray-400 text-sm mb-6">Your quiz progress will be lost. Are you sure?</p>
             <div class="flex gap-3 justify-center">
-                <button id="modal-home-cancel" class="glass glass-h rounded-lg px-5 py-2.5 text-sm text-gray-300 font-medium transition-all">Cancel</button>
-                <button id="modal-home-confirm" class="bg-amber-500/20 border border-amber-500/30 rounded-lg px-5 py-2.5 text-sm text-amber-300 font-semibold hover:bg-amber-500/30 transition-all">Confirm</button>
+                <button id="modal-home-cancel" class="glass glass-h rounded-lg px-5 py-2.5 text-sm text-gray-300 font-medium transition-all">Cancel <span class="text-gray-500 text-[10px] ml-1">[Esc]</span></button>
+                <button id="modal-home-confirm" class="bg-amber-500 text-white rounded-lg px-5 py-2.5 text-sm font-bold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all">Confirm <span class="text-white/70 text-[10px] ml-1">[Enter]</span></button>
             </div>
         </div>
     </div>
@@ -270,8 +271,8 @@
             <h3 class="text-lg font-bold text-white mb-2">Quiz Incomplete!</h3>
             <p class="text-gray-400 text-sm mb-6">You haven't answered all questions. View results anyway?</p>
             <div class="flex gap-3 justify-center">
-                <button id="modal-incomplete-continue" class="glass glass-h rounded-lg px-5 py-2.5 text-sm text-gray-300 font-medium transition-all">Continue Quiz</button>
-                <button id="modal-incomplete-view" class="bg-red-500/20 border border-red-500/30 rounded-lg px-5 py-2.5 text-sm text-red-300 font-semibold hover:bg-red-500/30 transition-all">View Results</button>
+                <button id="modal-incomplete-continue" class="glass glass-h rounded-lg px-5 py-2.5 text-sm text-gray-300 font-medium transition-all">Continue Quiz <span class="text-gray-500 text-[10px] ml-1">[Esc]</span></button>
+                <button id="modal-incomplete-view" class="bg-sakura-500 text-white rounded-lg px-5 py-2.5 text-sm font-bold shadow-lg shadow-sakura-500/20 hover:bg-sakura-400 transition-all">View Results <span class="text-white/70 text-[10px] ml-1">[Enter]</span></button>
             </div>
         </div>
     </div>

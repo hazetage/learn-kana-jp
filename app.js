@@ -181,14 +181,38 @@ function beginQuiz(){
 
 // ── Quiz: Type Romaji ──
 function renderTypeQuiz(){
-  document.onkeydown=function(e){if(e.key==='Escape'){e.preventDefault();showModal('modal-home');}};
+  document.onkeydown=function(e){
+    if(!$('#modal-home').classList.contains('hidden')||!$('#modal-incomplete').classList.contains('hidden'))return;
+    if(e.key==='Escape'){e.preventDefault();showModal('modal-home');return;}
+    const isInput=e.target.tagName==='INPUT';
+    if(e.key==='Enter'||e.code==='NumpadEnter'){
+      e.preventDefault();
+      if(isInput)e.target.blur();
+      handleComplete();
+      return;
+    }
+    if(e.key==='ArrowLeft'||(!isInput&&(e.key==='a'||e.key==='A'))){
+      if(isInput&&e.target.selectionStart>0)return;
+      e.preventDefault();
+      if(isInput)e.target.blur();
+      focusPrevTypeInput(isInput?+e.target.dataset.idx:-1);
+      return;
+    }
+    if(e.key==='ArrowRight'||(!isInput&&(e.key==='d'||e.key==='D'))){
+      if(isInput&&e.target.selectionEnd<e.target.value.length)return;
+      e.preventDefault();
+      if(isInput)e.target.blur();
+      focusNextTypeInput(isInput?+e.target.dataset.idx:-1);
+      return;
+    }
+  };
   const q=state.quiz.questions,ans=q.filter(x=>x.answered).length,pct=q.length?(ans/q.length*100):0;
   const lab=state.kanaType==='hiragana'?'Hiragana':'Katakana';
   $('#quiz-content').innerHTML=`
     <div class="text-center mb-2"><p class="text-xs text-gray-500 uppercase tracking-wider mb-1">${lab} Quiz — Type Romaji</p><h2 class="text-2xl font-bold text-white">Type the Romaji</h2></div>
     <div class="max-w-md mx-auto my-6"><div class="flex justify-between text-xs text-gray-500 mb-1"><span>Progress</span><span id="tp-text">${ans} / ${q.length}</span></div><div class="w-full bg-dark-700 rounded-full h-2"><div id="tp-bar" class="bg-gradient-to-r from-sakura-500 to-fuji-500 h-2 rounded-full transition-all duration-300" style="width:${pct}%"></div></div></div>
     <div class="grid grid-cols-5 gap-3 max-w-2xl mx-auto mb-8" id="type-grid"></div>
-    <div class="flex justify-center gap-4"><button onclick="showModal('modal-home')" class="glass glass-h rounded-xl px-6 py-3 text-gray-300 font-medium text-sm flex items-center gap-2 transition-all"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>Home <span class="text-gray-600 text-[10px] ml-1">[Esc]</span></button><button onclick="handleComplete()" class="btn-p rounded-xl px-8 py-3 text-white font-semibold text-sm shadow-lg shadow-sakura-500/20">Complete ✓</button></div>`;
+    <div class="flex flex-col sm:flex-row justify-center items-center gap-4"><button onclick="showModal('modal-home')" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 transition-all">Home <span class="text-gray-500 text-xs ml-1 font-medium">[Esc]</span></button><button onclick="handleComplete()" class="w-full sm:w-auto btn-p rounded-xl px-10 py-3.5 text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-sakura-500/20 transition-all">Complete ✓ <span class="text-white/50 text-xs ml-1 font-medium">[Enter]</span></button></div>`;
   const grid=$('#type-grid');
   q.forEach((item,i)=>{
     const cell=document.createElement('div');cell.id=`tc-${i}`;
@@ -204,7 +228,12 @@ function renderTypeQuiz(){
   });
   grid.querySelectorAll('.type-input').forEach(inp=>{
     inp.addEventListener('keydown',e=>{
-      if(e.key==='Enter'||e.key==='Tab'){e.preventDefault();if(inp.value.trim())checkTypeAnswer(+inp.dataset.idx,inp);focusNextTypeInput(+inp.dataset.idx);}
+      if(e.key==='Tab'){
+         e.preventDefault();
+         inp.blur();
+         if(e.shiftKey) focusPrevTypeInput(+inp.dataset.idx);
+         else focusNextTypeInput(+inp.dataset.idx);
+      }
     });
     inp.addEventListener('blur',()=>{if(inp.value.trim())checkTypeAnswer(+inp.dataset.idx,inp);});
   });
@@ -222,8 +251,18 @@ function checkTypeAnswer(idx,inp){
     setTimeout(()=>cell.classList.remove('q-ng'),600);
   }
 }
+function focusPrevTypeInput(cur){
+  const inputs=$$('#type-grid .type-input');
+  if(!inputs.length)return;
+  if(cur===-1){inputs[inputs.length-1].focus();return;}
+  const before=inputs.filter(inp=>+inp.dataset.idx<cur);
+  const target=before.length?before[before.length-1]:inputs[inputs.length-1];
+  if(target)target.focus();
+}
 function focusNextTypeInput(cur){
   const inputs=$$('#type-grid .type-input');
+  if(!inputs.length)return;
+  if(cur===-1){inputs[0].focus();return;}
   const after=inputs.filter(inp=>+inp.dataset.idx>cur);
   const target=after.length?after[0]:inputs[0];
   if(target)target.focus();
@@ -238,7 +277,7 @@ function renderChooseQuiz(){
   const q=state.quiz.questions,cur=state.quiz.currentIndex;
   if(cur>=q.length){
     const correct=q.filter(x=>x.correct).length;
-    $('#quiz-content').innerHTML=`<div class="text-center py-16"><div class="text-6xl mb-4">🎉</div><h2 class="text-3xl font-bold grad-text mb-2">Quiz Complete!</h2><p class="text-gray-400 mb-8">${correct} / ${q.length} correct</p><button onclick="showResults()" class="btn-p rounded-xl px-10 py-3.5 text-white font-bold shadow-lg shadow-sakura-500/20">View Results →</button></div>`;
+    $('#quiz-content').innerHTML=`<div class="text-center py-16"><div class="text-6xl mb-4">🎉</div><h2 class="text-3xl font-bold grad-text mb-2">Quiz Complete!</h2><p class="text-gray-400 mb-8">${correct} / ${q.length} correct</p><button onclick="showResults()" class="w-full sm:w-auto btn-p rounded-xl px-10 py-3.5 text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-sakura-500/20 transition-all mx-auto">View Results →</button></div>`;
     document.onkeydown=function(e){if(e.key==='Escape'||e.key==='Backspace'){e.preventDefault();goHome();}};return;
   }
   const item=q[cur],ans=q.filter(x=>x.answered).length,pct=q.length?(ans/q.length*100):0;
@@ -254,7 +293,7 @@ function renderChooseQuiz(){
     <div class="text-center my-10"><div class="inline-flex items-center justify-center w-28 h-28 rounded-3xl bg-gradient-to-br from-fuji-500/20 to-sakura-500/20 border border-fuji-500/30 mb-3"><span class="text-5xl font-bold text-white">${item.romaji}</span></div><p class="text-gray-400 text-sm mt-2">Select the matching kana</p></div>
     <div class="grid grid-cols-2 gap-4 max-w-xs mx-auto mb-4" id="choose-grid">${options.map((o,idx)=>`<button data-idx="${idx}" class="choose-opt glass glass-h rounded-xl p-5 text-center transition-all hover:scale-105 border border-transparent"><span class="text-5xl font-jp text-white">${o.char}</span><span class="block text-xs text-gray-600 mt-1">${idx+1}</span></button>`).join('')}</div>
     <div id="choose-hint" class="text-center text-xs text-gray-600 mb-6">Press 1-4 to select</div>
-    <div class="flex justify-center gap-4"><button onclick="showModal('modal-home')" class="glass glass-h rounded-xl px-6 py-3 text-gray-300 font-medium text-sm flex items-center gap-2 transition-all"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>Home <span class="text-gray-600 text-[10px] ml-1">[Bksp]</span></button><button onclick="handleComplete()" class="btn-p rounded-xl px-8 py-3 text-white font-semibold text-sm shadow-lg shadow-sakura-500/20">Complete ✓ <span class="text-white/50 text-[10px] ml-1">[Enter]</span></button></div>`;
+    <div class="flex flex-col sm:flex-row justify-center items-center gap-4"><button onclick="showModal('modal-home')" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 transition-all">Home <span class="text-gray-500 text-xs ml-1 font-medium">[Esc]</span></button><button onclick="handleComplete()" class="w-full sm:w-auto btn-p rounded-xl px-10 py-3.5 text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-sakura-500/20 transition-all">Complete ✓ <span class="text-white/50 text-xs ml-1 font-medium">[Enter]</span></button></div>`;
   $$('#choose-grid .choose-opt').forEach(b=>{b.onclick=()=>handleChooseClick(+b.dataset.idx);});
   document.onkeydown=handleChooseKey;
 }
@@ -287,13 +326,27 @@ function handleChooseKey(e){
   if(e.key>='1'&&e.key<='4')idx=+e.key-1;
   if(e.code==='Numpad1')idx=0;if(e.code==='Numpad2')idx=1;if(e.code==='Numpad3')idx=2;if(e.code==='Numpad4')idx=3;
   if(idx>=0){e.preventDefault();handleChooseClick(idx);return;}
-  if(e.key==='Backspace'){e.preventDefault();showModal('modal-home');return;}
+  if(e.key==='Escape'){e.preventDefault();showModal('modal-home');return;}
   if(e.key==='Enter'||e.code==='NumpadEnter'){e.preventDefault();handleComplete();return;}
 }
 
 // ── Complete / Home ──
 function handleComplete(){const u=state.quiz.questions.filter(x=>!x.answered).length;u>0?showModal('modal-incomplete'):showResults();}
-function goHome(){document.onkeydown=null;hideModal('modal-home');hideModal('modal-incomplete');showPage('page-selection');}
+function homeKeyHandler(e){
+  if(!$('#modal-home').classList.contains('hidden')||!$('#modal-incomplete').classList.contains('hidden'))return;
+  if(e.key==='Escape'){if(!$('#page-quiz-mode').classList.contains('hidden')){e.preventDefault();goHome();}return;}
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){if(!$('#page-quiz-mode').classList.contains('hidden')){e.preventDefault();selectQuizMode('type');}}
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){if(!$('#page-quiz-mode').classList.contains('hidden')){e.preventDefault();selectQuizMode('choose');}}
+  if(e.key==='Enter'||e.code==='NumpadEnter'){
+    if(!$('#page-selection').classList.contains('hidden')){
+      const btn=$('#btn-start-quiz');
+      if(btn&&btn.style.pointerEvents!=='none'){e.preventDefault();btn.click();}
+    }else if(!$('#page-quiz-mode').classList.contains('hidden')){
+      e.preventDefault();$('#btn-begin-quiz').click();
+    }
+  }
+}
+function goHome(){document.onkeydown=homeKeyHandler;hideModal('modal-home');hideModal('modal-incomplete');showPage('page-selection');}
 
 // ── Results ──
 function showResults(){
@@ -327,7 +380,7 @@ function showResults(){
       <div class="glass rounded-xl p-4 text-center"><div class="text-2xl font-bold text-fuji-400">${mins}:${secs.toString().padStart(2,'0')}</div><div class="text-xs text-gray-500">Time</div></div>
     </div>
     <h3 class="text-sm font-semibold text-white mb-3">Detail by Row</h3>${rowsHTML}
-    <div class="text-center mt-6"><button onclick="goHome()" class="btn-s rounded-xl px-10 py-3.5 text-white font-bold shadow-lg shadow-fuji-500/20">← Back to Home</button></div>`;
+    <div class="text-center mt-6"><button onclick="goHome()" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 mx-auto transition-all">Home <span class="text-gray-500 text-xs ml-1 font-medium">[Esc]</span></button></div>`;
   showPage('page-results');
   document.onkeydown=function(e){if(e.key==='Escape'||e.key==='Backspace'){e.preventDefault();goHome();}};
 }
@@ -441,20 +494,29 @@ function renderSheet(){
 }
 
 // ── Writing Practice ──
-const writing = { kana: [], index: 0, showStroke: true };
-function startWritingPractice(){
-  const k=getKana();
+const writing = { kana: [], index: 0, showStroke: true, type: 'hiragana' };
+function loadWritingKana() {
+  const k = KANA[writing.type];
   const main = k.main.flat().map(x=>({char:x[0],romaji:x[1], cat:'main'}));
   const dakuten = k.dakuten.flat().map(x=>({char:x[0],romaji:x[1], cat:'dakuten'}));
   writing.kana = [...main, ...dakuten];
   writing.index=0;
+}
+function setWritingType(t) {
+  writing.type = t;
+  loadWritingKana();
+  renderWriting();
+}
+function startWritingPractice(){
+  writing.type = 'hiragana';
+  loadWritingKana();
   showPage('page-writing');
   renderWriting();
 }
 function toggleStroke(){writing.showStroke=!writing.showStroke;renderWriting();}
 function renderWriting(){
   const k=writing.kana,cur=k[writing.index],total=k.length,idx=writing.index;
-  const lab=state.kanaType==='hiragana'?'Hiragana':'Katakana';
+  const lab=writing.type==='hiragana'?'Hiragana':'Katakana';
   const genGrid = (cat) => k.map((c,i) => {
     if (c.cat !== cat) return '';
     const cls=i===idx?'bg-sakura-500/30 border-sakura-500':'glass border-transparent';
@@ -472,8 +534,12 @@ function renderWriting(){
   
   const strokeBtn=writing.showStroke?'text-sakura-400':'text-gray-300';
   const strokeLbl=writing.showStroke?'Hide Strokes':'Show Strokes';
+  const hOn = writing.type === 'hiragana' ? 'bg-sakura-500 text-white shadow-lg shadow-sakura-500/20' : 'text-gray-400 glass glass-h hover:text-white';
+  const kOn = writing.type === 'katakana' ? 'bg-sakura-500 text-white shadow-lg shadow-sakura-500/20' : 'text-gray-400 glass glass-h hover:text-white';
+  const toggleHTML = `<div class="flex justify-center gap-3 mb-6"><button onclick="setWritingType('hiragana')" class="px-6 py-2 rounded-full text-sm font-semibold transition-all ${hOn}">Hiragana</button><button onclick="setWritingType('katakana')" class="px-6 py-2 rounded-full text-sm font-semibold transition-all ${kOn}">Katakana</button></div>`;
   $('#writing-content').innerHTML=`
     <div class="text-center mb-6"><p class="text-sm text-gray-500 uppercase tracking-wider mb-1">${lab} \u2014 Writing Practice</p><h2 class="text-3xl font-bold text-white">Practice Writing</h2></div>
+    ${toggleHTML}
     <div class="flex flex-col md:flex-row gap-6 items-center justify-center mb-6">
       <div class="glass rounded-2xl p-8 text-center min-w-[200px]"><div class="${mainFont} font-jp text-white mb-2" style="line-height:1">${cur.char}</div><div class="text-xl text-sakura-400 font-semibold">/${cur.romaji}</div><div class="text-sm text-gray-500 mt-2">${idx+1} / ${total}</div></div>
       <div class="relative"><canvas id="draw-canvas" class="draw-canvas glass rounded-2xl" width="300" height="300"></canvas><div class="absolute inset-0 pointer-events-none rounded-2xl overflow-hidden"><div class="absolute left-1/2 top-2 bottom-2 border-l border-dashed border-gray-500/30"></div><div class="absolute top-1/2 left-2 right-2 border-t border-dashed border-gray-500/30"></div></div>${strokeChar}</div>
@@ -490,7 +556,7 @@ function renderWriting(){
       <h4 class="text-xs font-semibold text-fuji-400 uppercase tracking-wider mb-2">Dakuten Kana</h4>
       <div class="flex flex-wrap gap-1.5 mb-4">${dakutenGrid}</div>
     </div>
-    <div class="text-center"><button onclick="goHome()" class="glass glass-h rounded-xl px-6 py-3 text-gray-300 font-medium text-sm flex items-center gap-2 mx-auto transition-all"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>Home <span class="text-gray-600 text-[10px] ml-1">[Esc]</span></button></div>`;
+    <div class="text-center"><button onclick="goHome()" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 mx-auto transition-all">Home <span class="text-gray-500 text-xs ml-1 font-medium">[Esc]</span></button></div>`;
   setupDrawCanvas();
   document.onkeydown=function(e){
     if(e.key==='Escape'||e.key==='Backspace'){e.preventDefault();goHome();}
@@ -548,6 +614,7 @@ function hideModal(id){
 // ── Init ──
 document.addEventListener('DOMContentLoaded',()=>{
   renderKanaRows();updateSelectionUI();selectQuizMode('type');
+  document.onkeydown=homeKeyHandler;
   let saved=localStorage.getItem('kana-theme');
   if(!saved) { saved = 'minimal'; localStorage.setItem('kana-theme', saved); }
   setTheme(saved);
