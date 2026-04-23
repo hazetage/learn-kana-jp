@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn Kana Quiz</title>
+    <meta name="description" content="Interactive Japanese Kana Quiz - Learn Hiragana and Katakana">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style type="text/tailwindcss">
+        @theme {
+            --font-sans: 'Inter', system-ui, sans-serif;
+            --font-jp: 'Noto Sans JP', sans-serif;
+            --font-jp-serif: 'Noto Serif JP', serif;
+            --color-dark-950: #06050b;
+            --color-dark-900: #0c0a14;
+            --color-dark-800: #13101f;
+            --color-dark-700: #1a162a;
+            --color-dark-600: #231e38;
+            --color-sakura-300: #ffa3c4;
+            --color-sakura-400: #ff6b9d;
+            --color-sakura-500: #f43f7a;
+            --color-sakura-600: #e2195d;
+            --color-fuji-400: #a78bfa;
+            --color-fuji-500: #8b5cf6;
+            --color-fuji-600: #7c3aed;
+        }
+        body { background: linear-gradient(135deg, var(--color-dark-950) 0%, var(--color-dark-900) 50%, #0f0720 100%); font-family: var(--font-sans); }
+        .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
+        .glass-h:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); }
+        .row-btn { transition: all .3s cubic-bezier(.4,0,.2,1); }
+        .row-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(244,63,122,.15); }
+        .grad-text { background: linear-gradient(135deg,var(--color-sakura-400),var(--color-fuji-400)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .btn-p { background: linear-gradient(135deg,var(--color-sakura-500),var(--color-sakura-600)); transition: all .3s; }
+        .btn-p:hover { background: linear-gradient(135deg,var(--color-sakura-400),var(--color-sakura-500)); box-shadow: 0 4px 20px rgba(244,63,122,.4); transform: translateY(-1px); }
+        .btn-s { background: linear-gradient(135deg,var(--color-fuji-500),var(--color-fuji-600)); transition: all .3s; }
+        .btn-s:hover { background: linear-gradient(135deg,var(--color-fuji-400),var(--color-fuji-500)); box-shadow: 0 4px 20px rgba(139,92,246,.4); transform: translateY(-1px); }
+        .sel-glow { box-shadow: 0 0 0 2px var(--color-sakura-500), 0 0 20px rgba(244,63,122,.25); }
+        .q-ok { background: rgba(16,185,129,.12)!important; border-color: rgba(16,185,129,.5)!important; }
+        .q-ng { background: rgba(239,68,68,.12)!important; border-color: rgba(239,68,68,.5)!important; }
+        .modal-bg { background: rgba(6,5,11,.85); backdrop-filter: blur(8px); }
+        .page.hidden { display: none; }
+        ::-webkit-scrollbar { width:6px } ::-webkit-scrollbar-track { background:transparent } ::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:3px }
+        /* Light Theme */
+        body.theme-light { background: linear-gradient(135deg, #f0f2f8 0%, #e8ecf4 50%, #f5f7fc 100%) !important; }
+        body.theme-light .glass { background: rgba(255,255,255,0.85); border-color: rgba(0,0,0,0.08); box-shadow: 0 1px 3px rgba(0,0,0,0.05); backdrop-filter: none; }
+        body.theme-light .glass-h:hover { background: rgba(255,255,255,1); border-color: rgba(0,0,0,0.12); }
+        body.theme-light .sel-glow { box-shadow: 0 0 0 2px #f43f7a, 0 0 12px rgba(244,63,122,.15); }
+        body.theme-light .text-white, body.theme-light .text-gray-200 { color: #1a1a2e !important; }
+        body.theme-light .text-gray-300 { color: #444 !important; }
+        body.theme-light .text-gray-400 { color: #666 !important; }
+        body.theme-light .text-gray-500 { color: #888 !important; }
+        body.theme-light .text-gray-600 { color: #aaa !important; }
+        body.theme-light .bg-dark-700 { background: rgba(0,0,0,0.04) !important; }
+        body.theme-light .bg-dark-800 { background: rgba(0,0,0,0.06) !important; }
+        body.theme-light .border-white\/5, body.theme-light .border-white\/10 { border-color: rgba(0,0,0,0.1) !important; }
+        body.theme-light .modal-bg { background: rgba(255,255,255,0.85); }
+        body.theme-light .q-ok { background: rgba(16,185,129,0.1) !important; }
+        body.theme-light .q-ng { background: rgba(239,68,68,0.1) !important; }
+        body.theme-light select, body.theme-light input { background: #f0f2f6 !important; color: #222 !important; border-color: rgba(0,0,0,0.12) !important; }
+        body.theme-light .row-btn:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        /* Minimal Theme */
+        body.theme-minimal { background: #ffffff !important; }
+        body.theme-minimal .glass { background: #fff; border: 1px solid #e5e7eb; backdrop-filter: none; box-shadow: none; }
+        body.theme-minimal .glass-h:hover { background: #f9fafb; border-color: #d1d5db; }
+        body.theme-minimal .sel-glow { box-shadow: 0 0 0 2px #f43f7a; }
+        body.theme-minimal .text-white, body.theme-minimal .text-gray-200 { color: #111 !important; }
+        body.theme-minimal .text-gray-300 { color: #555 !important; }
+        body.theme-minimal .text-gray-400 { color: #777 !important; }
+        body.theme-minimal .text-gray-500 { color: #999 !important; }
+        body.theme-minimal .text-gray-600 { color: #bbb !important; }
+        body.theme-minimal .bg-dark-700 { background: #f3f4f6 !important; }
+        body.theme-minimal .bg-dark-800 { background: #f9fafb !important; }
+        body.theme-minimal .border-white\/5, body.theme-minimal .border-white\/10 { border-color: #e5e7eb !important; }
+        body.theme-minimal .modal-bg { background: rgba(255,255,255,0.9); }
+        body.theme-minimal .btn-p, body.theme-minimal .btn-s { box-shadow: none !important; }
+        body.theme-minimal .row-btn:hover { transform: none; box-shadow: none; }
+        body.theme-minimal .grad-text { -webkit-text-fill-color: #111; background: none; }
+        body.theme-minimal select, body.theme-minimal input { background: #f9fafb !important; color: #222 !important; border-color: #e5e7eb !important; }
+        body.theme-minimal .q-ok { background: rgba(16,185,129,0.08) !important; }
+        body.theme-minimal .q-ng { background: rgba(239,68,68,0.08) !important; }
+        /* Tooltip themes */
+        .kana-tip { background: rgba(19,16,31,.95); border: 1px solid rgba(255,255,255,.15); }
+        .kana-tip-arrow { border-top-color: rgba(19,16,31,.95); }
+        body.theme-light .kana-tip { background: rgba(255,255,255,.95); border-color: rgba(0,0,0,.1); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+        body.theme-light .kana-tip .text-white { color: #111 !important; }
+        body.theme-light .kana-tip .text-gray-400 { color: #666 !important; }
+        body.theme-light .kana-tip-arrow { border-top-color: rgba(255,255,255,.95) !important; }
+        body.theme-minimal .kana-tip { background: #fff; border-color: #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+        body.theme-minimal .kana-tip .text-white { color: #111 !important; }
+        body.theme-minimal .kana-tip .text-gray-400 { color: #777 !important; }
+        body.theme-minimal .kana-tip-arrow { border-top-color: #fff !important; }
+        /* Canvas */
+        .draw-canvas { touch-action: none; }
+        /* Stroke SVGs */
+        .stroke-svg { filter: invert(0.8) sepia(1) hue-rotate(180deg) saturate(3) opacity(0.7); }
+        body.theme-light .stroke-svg { filter: opacity(0.4); }
+        body.theme-minimal .stroke-svg { filter: opacity(0.3); }
+    </style>
+</head>
+<body class="min-h-screen text-gray-200">
+    <!-- BG Decorations -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div class="absolute -top-40 -right-40 w-96 h-96 bg-sakura-500/10 rounded-full blur-3xl animate-pulse" style="animation-duration:6s"></div>
+        <div class="absolute top-1/3 -left-20 w-72 h-72 bg-fuji-500/10 rounded-full blur-3xl animate-pulse" style="animation-duration:8s"></div>
+        <div class="absolute bottom-20 right-1/4 w-80 h-80 bg-sakura-500/5 rounded-full blur-3xl animate-pulse" style="animation-duration:10s"></div>
+    </div>
+
+    <!-- ==================== PAGE: KANA SELECTION ==================== -->
+    <section id="page-selection" class="page max-w-6xl mx-auto px-4 pt-12 pb-8">
+        <div class="text-center mb-10">
+            <p class="text-sakura-400 text-sm tracking-[.3em] uppercase mb-2">日本語かな学習</p>
+            <h1 class="text-5xl font-extrabold grad-text mb-3">Learn Kana Quiz</h1>
+            <p class="text-gray-400 text-sm max-w-md mx-auto">Master Hiragana and Katakana through interactive quizzes. Select your kana and start learning!</p>
+        </div>
+        <!-- Toolbar -->
+        <div class="flex flex-wrap items-center justify-center gap-4 mb-8">
+            <div class="glass rounded-xl px-4 py-2.5 flex items-center gap-2">
+                <span class="text-xs text-gray-500">Theme</span>
+                <select id="theme-selector" class="bg-dark-700 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-gray-300 outline-none focus:border-sakura-500/50">
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                    <option value="minimal">Minimal</option>
+                </select>
+            </div>
+            <div class="glass rounded-xl px-4 py-2.5 flex items-center gap-2">
+                <span class="text-xs text-gray-500">Font</span>
+                <select id="font-selector" class="bg-dark-700 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-gray-300 outline-none focus:border-sakura-500/50">
+                    <option>Noto Sans JP</option>
+                    <option>Noto Serif JP</option>
+                </select>
+            </div>
+            <div class="flex bg-dark-800 rounded-full p-1 border border-white/5">
+                <button id="btn-hiragana" class="px-6 py-2 rounded-full bg-sakura-500 text-white text-sm font-semibold shadow-lg shadow-sakura-500/20 transition-all">Hiragana</button>
+                <button id="btn-katakana" class="px-6 py-2 rounded-full text-gray-400 text-sm font-medium hover:text-white transition-colors">Katakana</button>
+            </div>
+        </div>
+        <!-- Features -->
+        <div class="max-w-5xl mx-auto mb-4 flex flex-col sm:flex-row gap-4">
+            <button id="btn-sheet" class="flex-1 glass glass-h rounded-xl px-4 py-3.5 text-gray-300 font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-all hover:text-white">Kana Sheet 🪧</button>
+            <button id="btn-writing" class="flex-1 glass glass-h rounded-xl px-4 py-3.5 text-gray-300 font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-all hover:text-white">Writing Practice ✎</button>
+        </div>
+        <!-- All Kana -->
+        <div class="max-w-5xl mx-auto mb-6">
+            <button id="btn-all-kana" class="w-full btn-p rounded-xl px-6 py-3.5 text-white font-semibold text-sm flex items-center justify-center gap-3 shadow-lg shadow-sakura-500/20 transition-all">
+                <span class="all-check"><div class="w-5 h-5 rounded border-2 border-white/50 flex-shrink-0"></div></span>
+                Select All Kana
+            </button>
+        </div>
+        <!-- 3-Column Grid -->
+        <div class="max-w-5xl mx-auto grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div>
+                <h2 class="text-center text-sm font-semibold text-fuji-400 tracking-wider uppercase mb-3">Main Kana</h2>
+                <button id="btn-all-main" class="w-full glass glass-h rounded-lg px-4 py-2 text-xs text-gray-300 font-medium flex items-center justify-center gap-2 mb-3 transition-all">
+                    <span class="col-check"><div class="w-3.5 h-3.5 rounded border-2 border-gray-500 flex-shrink-0"></div></span>All Main Kana
+                </button>
+                <div id="main-rows" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+            </div>
+            <div>
+                <h2 class="text-center text-sm font-semibold text-fuji-400 tracking-wider uppercase mb-3">Dakuten Kana</h2>
+                <button id="btn-all-dakuten" class="w-full glass glass-h rounded-lg px-4 py-2 text-xs text-gray-300 font-medium flex items-center justify-center gap-2 mb-3 transition-all">
+                    <span class="col-check"><div class="w-3.5 h-3.5 rounded border-2 border-gray-500 flex-shrink-0"></div></span>All Dakuten Kana
+                </button>
+                <div id="dakuten-rows" class="space-y-2"></div>
+            </div>
+            <div>
+                <h2 class="text-center text-sm font-semibold text-fuji-400 tracking-wider uppercase mb-3">Combination Kana</h2>
+                <button id="btn-all-combination" class="w-full glass glass-h rounded-lg px-4 py-2 text-xs text-gray-300 font-medium flex items-center justify-center gap-2 mb-3 transition-all">
+                    <span class="col-check"><div class="w-3.5 h-3.5 rounded border-2 border-gray-500 flex-shrink-0"></div></span>All Combination Kana
+                </button>
+                <div id="combo-rows" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+            </div>
+        </div>
+        <!-- Start -->
+        <div class="max-w-5xl mx-auto mt-8 text-center">
+            <button id="btn-start-quiz" class="w-full sm:w-auto btn-s rounded-xl px-12 py-4 text-white font-bold text-lg shadow-lg shadow-fuji-500/20" style="opacity:0.5;pointer-events:none">Start Quiz →</button>
+        </div>
+    </section>
+
+    <!-- ==================== PAGE: QUIZ MODE ==================== -->
+    <section id="page-quiz-mode" class="page hidden max-w-3xl mx-auto px-4 py-12">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold grad-text mb-2">Choose Quiz Mode</h2>
+            <p class="text-gray-400 text-sm">How would you like to practice?</p>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-6">
+            <div id="mode-type" class="glass glass-h rounded-2xl p-6 cursor-pointer transition-all sel-glow text-center">
+                <div class="w-16 h-16 rounded-2xl bg-sakura-500/10 border border-sakura-500/20 flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl font-jp text-sakura-400">あ</span>
+                </div>
+                <div class="text-2xl text-gray-500 mb-4">↓</div>
+                <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-white/10 flex items-center justify-center mx-auto mb-4">
+                    <span class="text-lg font-semibold text-fuji-400">a</span>
+                </div>
+                <h3 class="text-white font-semibold mb-1">Kana → Romaji</h3>
+                <p class="text-gray-500 text-xs">See kana, type the romaji reading</p>
+                <div class="mode-check mt-4 text-sakura-400 text-xs font-medium">✓ Selected</div>
+            </div>
+            <div id="mode-choose" class="glass glass-h rounded-2xl p-6 cursor-pointer transition-all text-center">
+                <div class="w-16 h-16 rounded-2xl bg-fuji-500/10 border border-fuji-500/20 flex items-center justify-center mx-auto mb-4">
+                    <span class="text-lg font-semibold text-fuji-400">ka</span>
+                </div>
+                <div class="text-2xl text-gray-500 mb-4">↓</div>
+                <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-white/10 flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl font-jp text-sakura-400">?</span>
+                </div>
+                <h3 class="text-white font-semibold mb-1">Romaji → Kana</h3>
+                <p class="text-gray-500 text-xs">See romaji, choose the correct kana</p>
+                <div class="mode-check hidden mt-4 text-sakura-400 text-xs font-medium">✓ Selected</div>
+            </div>
+        </div>
+        <div class="text-center mt-8">
+            <button id="btn-begin-quiz" class="btn-p rounded-xl px-10 py-3.5 text-white font-bold shadow-lg shadow-sakura-500/20">Begin Quiz →</button>
+        </div>
+    </section>
+
+    <!-- ==================== PAGE: QUIZ ==================== -->
+    <section id="page-quiz" class="page hidden max-w-3xl mx-auto px-4 py-12">
+        <div id="quiz-content"></div>
+    </section>
+
+    <!-- ==================== PAGE: KANA SHEET ==================== -->
+    <section id="page-sheet" class="page hidden max-w-[1400px] w-full mx-auto px-4 py-4 sm:py-6">
+        <div class="text-center mb-4 sm:mb-6">
+            <h2 class="text-2xl sm:text-3xl font-bold grad-text mb-1">Kana Cheat Sheet</h2>
+            <p class="text-gray-400 text-xs sm:text-sm">All Hiragana and Katakana at a glance</p>
+        </div>
+        <div class="flex justify-center flex-wrap gap-3 mb-4 sm:mb-6">
+            <button id="btn-sheet-hiragana" class="px-6 py-2 rounded-full bg-sakura-500 text-white text-sm font-semibold shadow-lg shadow-sakura-500/20 transition-all">Hiragana</button>
+            <button id="btn-sheet-katakana" class="px-6 py-2 rounded-full text-gray-400 glass glass-h text-sm font-medium transition-colors">Katakana</button>
+        </div>
+        <div id="sheet-content"></div>
+        <div class="text-center mt-6">
+            <button onclick="goHome()" class="glass glass-h rounded-xl px-6 py-2.5 text-gray-300 font-medium text-sm flex items-center gap-2 mx-auto transition-all"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>Back to Home <span class="text-gray-600 text-[10px] ml-1">[Esc]</span></button>
+        </div>
+    </section>
+
+    <!-- ==================== PAGE: WRITING PRACTICE ==================== -->
+    <section id="page-writing" class="page hidden max-w-3xl mx-auto px-4 py-12">
+        <div id="writing-content"></div>
+    </section>
+
+    <!-- ==================== PAGE: RESULTS ==================== -->
+    <section id="page-results" class="page hidden max-w-2xl mx-auto px-4 py-12">
+        <div id="results-content"></div>
+    </section>
+
+    <!-- ==================== MODALS ==================== -->
+    <div id="modal-home" class="hidden fixed inset-0 modal-bg flex items-center justify-center z-50 p-4">
+        <div class="glass rounded-2xl p-8 max-w-md text-center">
+            <div class="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-7 h-7 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Go Home?</h3>
+            <p class="text-gray-400 text-sm mb-6">Your quiz progress will be lost. Are you sure?</p>
+            <div class="flex gap-3 justify-center">
+                <button id="modal-home-cancel" class="glass glass-h rounded-lg px-5 py-2.5 text-sm text-gray-300 font-medium transition-all">Cancel</button>
+                <button id="modal-home-confirm" class="bg-amber-500/20 border border-amber-500/30 rounded-lg px-5 py-2.5 text-sm text-amber-300 font-semibold hover:bg-amber-500/30 transition-all">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-incomplete" class="hidden fixed inset-0 modal-bg flex items-center justify-center z-50 p-4">
+        <div class="glass rounded-2xl p-8 max-w-md text-center">
+            <div class="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-7 h-7 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Quiz Incomplete!</h3>
+            <p class="text-gray-400 text-sm mb-6">You haven't answered all questions. View results anyway?</p>
+            <div class="flex gap-3 justify-center">
+                <button id="modal-incomplete-continue" class="glass glass-h rounded-lg px-5 py-2.5 text-sm text-gray-300 font-medium transition-all">Continue Quiz</button>
+                <button id="modal-incomplete-view" class="bg-red-500/20 border border-red-500/30 rounded-lg px-5 py-2.5 text-sm text-red-300 font-semibold hover:bg-red-500/30 transition-all">View Results</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
