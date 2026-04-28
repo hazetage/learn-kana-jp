@@ -404,7 +404,7 @@ function renderSheet(){
   const vowels = ['a','i','u','e','o'];
   
   const generateHTML = (data, getPrefix) => {
-    let html = `<div class="grid grid-cols-[20px_repeat(5,1fr)] lg:grid-cols-[24px_repeat(5,1fr)] gap-1.5 lg:gap-2 w-full max-w-[480px] mx-auto">`;
+    let html = `<div class="grid grid-cols-[20px_repeat(5,1fr)] lg:grid-cols-[24px_repeat(5,1fr)] gap-1.5 lg:gap-2 w-full max-w-[520px] mx-auto">`;
     html += `<div></div>` + vowels.map(v => `<div class="text-center text-xs lg:text-sm font-bold text-sakura-400 self-center">${v}</div>`).join('');
     
     data.forEach((row, i) => {
@@ -442,9 +442,9 @@ function renderSheet(){
           }
         }
       } else {
-        html += `<div class="col-span-5 flex gap-1.5 lg:gap-2 flex-wrap justify-center">`;
+        html += `<div class="col-span-5 flex gap-1 lg:gap-1.5 flex-nowrap justify-center">`;
         displayRow.forEach(cell => {
-           html += `<div class="glass glass-h rounded px-1 py-2 text-center flex flex-col items-center justify-center flex-1 min-w-[56px] hover:scale-110 shadow-sm transition-transform"><span class="text-2xl lg:text-[28px] font-jp text-white leading-none mb-1 lg:mb-1.5">${cell[0]}</span><span class="text-[11px] lg:text-xs text-gray-400 font-medium leading-none">${cell[1]}</span></div>`;
+           html += `<div class="glass glass-h rounded px-1 py-2 text-center flex flex-col items-center justify-center flex-1 min-w-[36px] hover:scale-110 shadow-sm transition-transform whitespace-nowrap"><span class="text-2xl lg:text-[28px] font-jp text-white leading-none mb-1 lg:mb-1.5">${cell[0]}</span><span class="text-[11px] lg:text-xs text-gray-400 font-medium leading-none">${cell[1]}</span></div>`;
         });
         html += `</div>`;
       }
@@ -478,14 +478,14 @@ function renderSheet(){
   const block = (title, content) => `<div class="bg-dark-800 rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/5 h-full flex flex-col shadow-xl"><h3 class="text-sm sm:text-base font-bold text-fuji-400 mb-3 sm:mb-4 text-center tracking-widest uppercase border-b border-white/10 pb-3">${title}</h3><div class="flex-1 flex flex-col justify-start">${content}</div></div>`;
 
   $('#sheet-content').innerHTML = `
-    <div class="flex flex-wrap justify-center items-stretch gap-4 sm:gap-5 lg:gap-6 w-full mx-auto">
-        <div class="w-full sm:w-[360px] md:w-[420px] xl:w-[430px] flex-none">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 w-full mx-auto">
+        <div class="w-full">
             ${block('Main Kana', mainHTML)}
         </div>
-        <div class="w-full sm:w-[360px] md:w-[420px] xl:w-[430px] flex-none">
+        <div class="w-full">
             ${block('Dakuten', dakutenHTML)}
         </div>
-        <div class="w-full sm:w-[360px] md:w-[420px] xl:w-[430px] flex-none">
+        <div class="w-full">
             ${block('Combination', comboHTML)}
         </div>
     </div>
