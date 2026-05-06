@@ -92,6 +92,15 @@
         body.theme-minimal .kana-tip .text-white { color: #111 !important; }
         body.theme-minimal .kana-tip .text-gray-400 { color: #777 !important; }
         body.theme-minimal .kana-tip-arrow { border-top-color: #fff !important; }
+        /* Number Cards */
+        .num-card { transition: all .3s cubic-bezier(.4,0,.2,1); }
+        .num-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(244,63,122,.1); }
+        .num-highlight { background: linear-gradient(135deg, rgba(244,63,122,.08), rgba(139,92,246,.08)); border-color: rgba(244,63,122,.3) !important; }
+        .num-highlight .num-kanji { color: var(--color-sakura-400) !important; }
+        .num-cat-btn { transition: all .3s cubic-bezier(.4,0,.2,1); }
+        .num-cat-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(139,92,246,.2); }
+        body.theme-light .num-highlight { background: linear-gradient(135deg, rgba(244,63,122,.06), rgba(139,92,246,.06)); }
+        body.theme-minimal .num-highlight { background: rgba(244,63,122,.04); border-color: rgba(244,63,122,.2) !important; }
         /* Canvas */
         .draw-canvas { touch-action: none; }
         /* Stroke SVGs */
@@ -141,6 +150,7 @@
         <div class="max-w-5xl mx-auto mb-4 flex flex-col sm:flex-row gap-4">
             <button id="btn-sheet" class="flex-1 glass glass-h rounded-xl px-4 py-3.5 text-gray-300 font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-all hover:text-white">Kana Sheet 🪧</button>
             <button id="btn-writing" class="flex-1 glass glass-h rounded-xl px-4 py-3.5 text-gray-300 font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-all hover:text-white">Writing Practice ✎</button>
+            <button id="btn-number" class="flex-1 glass glass-h rounded-xl px-4 py-3.5 text-gray-300 font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-all hover:text-white">Number 🔢</button>
         </div>
         <!-- All Kana -->
         <div class="max-w-5xl mx-auto mb-6">
@@ -241,6 +251,24 @@
     <!-- ==================== PAGE: WRITING PRACTICE ==================== -->
     <section id="page-writing" class="page hidden max-w-3xl mx-auto px-4 py-12">
         <div id="writing-content"></div>
+    </section>
+
+    <!-- ==================== PAGE: NUMBER MENU ==================== -->
+    <section id="page-number-menu" class="page hidden max-w-4xl mx-auto px-4 py-12">
+        <div class="text-center mb-8">
+            <p class="text-sakura-400 text-sm tracking-[.3em] uppercase mb-2">数字の学習</p>
+            <h2 class="text-3xl font-bold grad-text mb-2">Learn Numbers</h2>
+            <p class="text-gray-400 text-sm max-w-md mx-auto">Choose a counting category to start learning Japanese numbers</p>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" id="number-menu-grid"></div>
+        <div class="text-center mt-8">
+            <button onclick="goHome()" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 mx-auto transition-all">Home <span class="text-gray-500 text-xs ml-1 font-medium">[Esc]</span></button>
+        </div>
+    </section>
+
+    <!-- ==================== PAGE: NUMBER DETAIL ==================== -->
+    <section id="page-number-detail" class="page hidden max-w-5xl mx-auto px-4 py-12">
+        <div id="number-detail-content"></div>
     </section>
 
     <!-- ==================== PAGE: RESULTS ==================== -->

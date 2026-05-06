@@ -639,4 +639,292 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('#modal-incomplete-continue').addEventListener('click',()=>hideModal('modal-incomplete'));
   $('#modal-incomplete-view').addEventListener('click',showResults);
   $('#btn-writing').addEventListener('click',startWritingPractice);
+  $('#btn-number').addEventListener('click',showNumberMenu);
 });
+
+// ── Number Learning ──
+const NUMBER_CATEGORIES = [
+  { id: 'natural', emoji: '🔢', title: '数字', titleEn: 'Natural Numbers', desc: 'Numbers 0 ~ 100,000' },
+  { id: 'hour', emoji: '🕐', title: '時間', titleEn: 'Hours / Minutes / Seconds', desc: 'Counting hours, minutes, seconds', coming: true },
+  { id: 'weekday', emoji: '📅', title: '曜日', titleEn: 'Days of Week', desc: 'Days of the week' },
+  { id: 'day', emoji: '📆', title: '日', titleEn: 'Days of Month', desc: 'Days in a month', coming: true },
+  { id: 'month', emoji: '🗓️', title: '月', titleEn: 'Months', desc: 'Months of the year', coming: true },
+  { id: 'year', emoji: '📊', title: '年', titleEn: 'Years', desc: 'Counting years', coming: true },
+  { id: 'floor', emoji: '🏢', title: '階', titleEn: 'Floors', desc: 'Building floors', coming: true },
+  { id: 'general', emoji: '📦', title: 'つ', titleEn: 'General Objects', desc: 'Generic object counter', coming: true },
+  { id: 'book', emoji: '📚', title: '冊', titleEn: 'Books / Magazines', desc: 'Books, magazines, volumes', coming: true },
+  { id: 'flat', emoji: '👕', title: '枚', titleEn: 'Flat / Thin Objects', desc: 'Paper, shirts, flat items', coming: true },
+  { id: 'cup', emoji: '🥤', title: '杯', titleEn: 'Cups / Glasses', desc: 'Cups and glasses of liquid', coming: true },
+  { id: 'long', emoji: '🖊️', title: '本', titleEn: 'Long Objects', desc: 'Pens, bottles, long items', coming: true },
+  { id: 'times', emoji: '🔄', title: '回', titleEn: 'Times / Occurrences', desc: 'Number of times', coming: true },
+];
+
+// Helper: style "/" separators with a muted color for readability
+function formatSlash(text, cssClass) {
+  return text.replace(/\//g, `<span class="${cssClass}">/</span>`);
+}
+
+// Natural Numbers Data: [number, kanji, hiragana, romaji, highlight]
+// highlight = true for irregular readings / special notes
+const NATURAL_NUMBERS = {
+  basic: [
+    [0, '零/〇', 'れい/ゼロ', 'rei / zero', true],
+    [1, '一', 'いち', 'ichi', false],
+    [2, '二', 'に', 'ni', false],
+    [3, '三', 'さん', 'san', false],
+    [4, '四', 'し/よん', 'shi / yon', true],
+    [5, '五', 'ご', 'go', false],
+    [6, '六', 'ろく', 'roku', false],
+    [7, '七', 'しち/なな', 'shichi / nana', true],
+    [8, '八', 'はち', 'hachi', false],
+    [9, '九', 'く/きゅう', 'ku / kyū', true],
+    [10, '十', 'じゅう', 'jū', false],
+    [11, '十一', 'じゅういち', 'jū ichi', false],
+    [12, '十二', 'じゅうに', 'jū ni', false],
+    [13, '十三', 'じゅうさん', 'jū san', false],
+    [14, '十四', 'じゅうし/じゅうよん', 'jū shi / jū yon', true],
+    [15, '十五', 'じゅうご', 'jū go', false],
+    [16, '十六', 'じゅうろく', 'jū roku', false],
+    [17, '十七', 'じゅうしち/じゅうなな', 'jū shichi / jū nana', true],
+    [18, '十八', 'じゅうはち', 'jū hachi', false],
+    [19, '十九', 'じゅうく/じゅうきゅう', 'jū ku / jū kyū', true],
+    [20, '二十', 'にじゅう', 'ni jū', false],
+  ],
+  hundreds: [
+    [100, '百', 'ひゃく', 'hyaku', false],
+    [200, '二百', 'にひゃく', 'ni hyaku', false],
+    [300, '三百', 'さんびゃく', 'sanbyaku', true],
+    [400, '四百', 'よんひゃく', 'yon hyaku', false],
+    [500, '五百', 'ごひゃく', 'go hyaku', false],
+    [600, '六百', 'ろっぴゃく', 'roppyaku', true],
+    [700, '七百', 'ななひゃく', 'nana hyaku', false],
+    [800, '八百', 'はっぴゃく', 'happyaku', true],
+    [900, '九百', 'きゅうひゃく', 'kyū hyaku', false],
+  ],
+  thousands: [
+    [1000, '千', 'せん', 'sen', false],
+    [2000, '二千', 'にせん', 'ni sen', false],
+    [3000, '三千', 'さんぜん', 'sanzen', true],
+    [4000, '四千', 'よんせん', 'yon sen', false],
+    [5000, '五千', 'ごせん', 'go sen', false],
+    [6000, '六千', 'ろくせん', 'roku sen', false],
+    [7000, '七千', 'ななせん', 'nana sen', false],
+    [8000, '八千', 'はっせん', 'hassen', true],
+    [9000, '九千', 'きゅうせん', 'kyū sen', false],
+  ],
+  large: [
+    [10000, '一万', 'いちまん', 'ichiman', false],
+    [100000, '十万', 'じゅうまん', 'jūman', false],
+  ],
+};
+
+function showNumberMenu() {
+  showPage('page-number-menu');
+  renderNumberMenu();
+  document.onkeydown = function(e) {
+    if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); goHome(); }
+  };
+}
+
+function renderNumberMenu() {
+  const grid = $('#number-menu-grid');
+  grid.innerHTML = NUMBER_CATEGORIES.map(cat => {
+    const coming = cat.coming ? ' opacity-60 pointer-events-none' : '';
+    const badge = cat.coming ? `<span class="absolute top-2 right-2 text-[10px] bg-gray-500/20 text-gray-400 rounded-full px-2 py-0.5">Coming Soon</span>` : '';
+    return `
+      <div class="num-cat-btn glass glass-h rounded-2xl p-5 cursor-pointer relative${coming}" onclick="${cat.coming ? '' : `showNumberDetail('${cat.id}')`}">
+        ${badge}
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sakura-500/15 to-fuji-500/15 border border-sakura-500/20 flex items-center justify-center mb-3">
+          <span class="text-2xl">${cat.emoji}</span>
+        </div>
+        <h3 class="text-white font-semibold mb-0.5">
+          <span class="font-jp text-lg">${cat.title}</span>
+          <span class="text-sm text-gray-300 ml-1">${cat.titleEn}</span>
+        </h3>
+        <p class="text-gray-500 text-xs">${cat.desc}</p>
+      </div>`;
+  }).join('');
+}
+
+function showNumberDetail(catId) {
+  showPage('page-number-detail');
+  document.onkeydown = function(e) {
+    if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); showNumberMenu(); }
+  };
+  if (catId === 'natural') renderNaturalNumbers();
+  else if (catId === 'weekday') renderWeekdays();
+}
+
+function renderNaturalNumbers() {
+  const renderSection = (title, data, note) => {
+    let html = `<div class="mb-8">`;
+    html += `<h3 class="text-sm font-semibold text-fuji-400 tracking-wider uppercase mb-1">${title}</h3>`;
+    if (note) html += `<p class="text-xs text-gray-500 mb-3">${note}</p>`;
+    html += `<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">`;
+    data.forEach(([num, kanji, hira, roma, hl]) => {
+      const hlClass = hl ? 'num-highlight' : '';
+      const badge = hl ? `<div class="absolute top-1.5 right-1.5"><span class="inline-block w-2 h-2 rounded-full bg-sakura-400 animate-pulse"></span></div>` : '';
+      html += `
+        <div class="num-card glass rounded-xl p-4 text-center border border-transparent relative ${hlClass}">
+          ${badge}
+          <div class="text-xs text-gray-500 mb-1 font-mono">${num.toLocaleString()}</div>
+          <div class="num-kanji text-3xl font-jp text-white mb-2 leading-tight">${formatSlash(kanji, 'text-gray-600 text-xl')}</div>
+          <div class="text-sm font-jp text-sakura-300 mb-1">${formatSlash(hira, 'text-gray-600 text-xs')}</div>
+          <div class="text-xs text-gray-400">${formatSlash(roma, 'text-gray-600')}</div>
+        </div>`;
+    });
+    html += `</div></div>`;
+    return html;
+  };
+
+  const legendHTML = `
+    <div class="glass rounded-xl p-5 mb-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="inline-block w-3 h-3 rounded-full bg-sakura-400 animate-pulse"></span>
+        <span class="text-sm font-semibold text-white">Irregular Readings & Sound Changes</span>
+      </div>
+      <div class="space-y-2 text-xs">
+        <div class="flex items-start gap-2">
+          <span class="text-sakura-400 mt-0.5">●</span>
+          <span class="text-gray-300"><strong class="text-white">Two readings:</strong> 4 (<span class="font-jp">し</span> / <span class="font-jp">よん</span>), 7 (<span class="font-jp">しち</span> / <span class="font-jp">なな</span>), 9 (<span class="font-jp">く</span> / <span class="font-jp">きゅう</span>) — usage depends on context</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <span class="text-sakura-400 mt-0.5">●</span>
+          <span class="text-gray-300"><strong class="text-white">Hundreds:</strong> 300, 600, 800 have sound changes — <span class="font-jp">ひゃく</span> → <span class="font-jp text-sakura-300">びゃく</span> / <span class="font-jp text-sakura-300">ぴゃく</span></span>
+        </div>
+        <div class="flex items-start gap-2">
+          <span class="text-sakura-400 mt-0.5">●</span>
+          <span class="text-gray-300"><strong class="text-white">Thousands:</strong> 3000, 8000 have sound changes — <span class="font-jp">せん</span> → <span class="font-jp text-sakura-300">ぜん</span> / <span class="font-jp text-sakura-300">っせん</span></span>
+        </div>
+      </div>
+    </div>`;
+
+  $('#number-detail-content').innerHTML = `
+    <div class="text-center mb-6">
+      <p class="text-sakura-400 text-sm tracking-[.3em] uppercase mb-2">数字</p>
+      <h2 class="text-3xl font-bold grad-text mb-2">Natural Numbers</h2>
+      <p class="text-gray-400 text-sm">Japanese natural numbers at a glance</p>
+    </div>
+    ${legendHTML}
+    ${renderSection('0 〜 20 — Basics', NATURAL_NUMBERS.basic, 'Numbers 4, 7, 9 have two possible readings — usage depends on context')}
+    ${renderSection('100 〜 900 — Hundreds (百)', NATURAL_NUMBERS.hundreds, '300 (sanbyaku), 600 (roppyaku), 800 (happyaku) have irregular sound changes')}
+    ${renderSection('1,000 〜 9,000 — Thousands (千)', NATURAL_NUMBERS.thousands, '3000 (sanzen), 8000 (hassen) have irregular sound changes')}
+    ${renderSection('10,000+ — Large Numbers (万)', NATURAL_NUMBERS.large, 'Japanese counts in units of 万 (man = 10,000) instead of thousands like in English')}
+    <div class="text-center mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
+      <button onclick="showNumberMenu()" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 transition-all">← Back <span class="text-gray-500 text-xs ml-1 font-medium">[Esc]</span></button>
+      <button onclick="goHome()" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 transition-all">Home</button>
+    </div>`;
+}
+
+// ── Days of Week ──
+// [kanji, hiragana, romaji, abbreviation, meaning, color]
+const WEEKDAYS = [
+  ['月曜日', 'げつようび', 'getsuyōbi', '月', 'Moon (Monday)', '#94a3b8'],
+  ['火曜日', 'かようび', 'kayōbi', '火', 'Fire (Tuesday)', '#f87171'],
+  ['水曜日', 'すいようび', 'suiyōbi', '水', 'Water (Wednesday)', '#60a5fa'],
+  ['木曜日', 'もくようび', 'mokuyōbi', '木', 'Wood (Thursday)', '#4ade80'],
+  ['金曜日', 'きんようび', 'kin\'yōbi', '金', 'Gold (Friday)', '#fbbf24'],
+  ['土曜日', 'どようび', 'doyōbi', '土', 'Earth (Saturday)', '#a78bfa'],
+  ['日曜日', 'にちようび', 'nichiyōbi', '日', 'Sun (Sunday)', '#fb923c'],
+];
+
+const WEEKDAY_QUESTION = ['何曜日', 'なんようび', 'nan\'yōbi', '?', 'What day?', '#f43f7a'];
+
+function renderWeekdays() {
+  let cardsHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">`;
+
+  WEEKDAYS.forEach(([kanji, hira, roma, abbr, meaning, color]) => {
+    cardsHTML += `
+      <div class="num-card glass rounded-xl p-5 border border-transparent relative">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center text-2xl font-jp font-bold" style="background:${color}15;border:1px solid ${color}30;color:${color}">${abbr}</div>
+          <div>
+            <div class="text-xs text-gray-500">${meaning}</div>
+          </div>
+        </div>
+        <div class="num-kanji text-3xl font-jp text-white mb-2 leading-tight">${kanji}</div>
+        <div class="text-sm font-jp text-sakura-300 mb-1">${hira}</div>
+        <div class="text-xs text-gray-400">${roma}</div>
+      </div>`;
+  });
+
+  // Question card
+  const [qKanji, qHira, qRoma, qAbbr, qMeaning, qColor] = WEEKDAY_QUESTION;
+  cardsHTML += `
+    <div class="num-card glass rounded-xl p-5 border border-transparent relative num-highlight">
+      <div class="absolute top-1.5 right-1.5"><span class="inline-block w-2 h-2 rounded-full bg-sakura-400 animate-pulse"></span></div>
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center text-2xl font-bold" style="background:${qColor}15;border:1px solid ${qColor}30;color:${qColor}">${qAbbr}</div>
+        <div>
+          <div class="text-xs text-gray-500">${qMeaning}</div>
+        </div>
+      </div>
+      <div class="num-kanji text-3xl font-jp text-white mb-2 leading-tight">${qKanji}</div>
+      <div class="text-sm font-jp text-sakura-300 mb-1">${qHira}</div>
+      <div class="text-xs text-gray-400">${qRoma}</div>
+    </div>`;
+  cardsHTML += `</div>`;
+
+  const legendHTML = `
+    <div class="glass rounded-xl p-5 mb-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-sm font-semibold text-white">📝 Notes</span>
+      </div>
+      <div class="space-y-2 text-xs">
+        <div class="flex items-start gap-2">
+          <span class="text-sakura-400 mt-0.5">●</span>
+          <span class="text-gray-300"><strong class="text-white">Pattern:</strong> Each day is named after a natural element + <span class="font-jp">曜日</span> (<span class="text-gray-400">yōbi</span>)</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <span class="text-sakura-400 mt-0.5">●</span>
+          <span class="text-gray-300"><strong class="text-white">Abbreviation:</strong> In calendars, only the first kanji is used — e.g. <span class="font-jp">月</span> for Monday, <span class="font-jp">火</span> for Tuesday</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <span class="text-sakura-400 mt-0.5">●</span>
+          <span class="text-gray-300"><strong class="text-white">Asking:</strong> <span class="font-jp text-sakura-300">何曜日ですか？</span> (nan'yōbi desu ka?) = "What day is it?"</span>
+        </div>
+      </div>
+    </div>`;
+
+  // Structure breakdown
+  const structureHTML = `
+    <div class="mb-8">
+      <h3 class="text-sm font-semibold text-fuji-400 tracking-wider uppercase mb-3">Structure Breakdown</h3>
+      <div class="glass rounded-xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-white/10">
+              <th class="text-left px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Element</th>
+              <th class="text-center px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Kanji</th>
+              <th class="text-center px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Reading</th>
+              <th class="text-left px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${WEEKDAYS.map(([kanji, hira, roma, abbr, meaning, color]) => `
+              <tr class="border-b border-white/5 hover:bg-white/[.02] transition-colors">
+                <td class="px-4 py-3"><span class="font-jp text-lg" style="color:${color}">${abbr}</span> <span class="text-gray-500 text-xs">${meaning.split(' ')[0]}</span></td>
+                <td class="px-4 py-3 text-center"><span class="font-jp text-white text-lg">${kanji}</span></td>
+                <td class="px-4 py-3 text-center"><span class="font-jp text-sakura-300">${hira}</span></td>
+                <td class="px-4 py-3 text-gray-400">${roma}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+
+  $('#number-detail-content').innerHTML = `
+    <div class="text-center mb-6">
+      <p class="text-sakura-400 text-sm tracking-[.3em] uppercase mb-2">曜日</p>
+      <h2 class="text-3xl font-bold grad-text mb-2">Days of the Week</h2>
+      <p class="text-gray-400 text-sm">Each day is named after a natural element</p>
+    </div>
+    ${legendHTML}
+    <h3 class="text-sm font-semibold text-fuji-400 tracking-wider uppercase mb-3">All Days</h3>
+    ${cardsHTML}
+    ${structureHTML}
+    <div class="text-center mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
+      <button onclick="showNumberMenu()" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 transition-all">← Back <span class="text-gray-500 text-xs ml-1 font-medium">[Esc]</span></button>
+      <button onclick="goHome()" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 transition-all">Home</button>
+    </div>`;
+}
