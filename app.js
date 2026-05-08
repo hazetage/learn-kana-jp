@@ -717,7 +717,7 @@ function renderFlashcard(){
     <div class="flex justify-center flex-wrap gap-3 mb-6">
       <button onclick="fcPrev()" class="glass glass-h rounded-xl px-5 py-2.5 text-gray-300 text-sm font-medium transition-all" ${idx===0?'disabled style="opacity:.4"':''}>← Prev <span class="text-gray-600 text-[10px] ml-1">[←/A]</span></button>
       <button onclick="flipCard()" class="glass glass-h rounded-xl px-5 py-2.5 text-gray-300 text-sm font-medium transition-all">Flip ⟲ <span class="text-gray-600 text-[10px] ml-1">[Space]</span></button>
-      <button onclick="fcNext()" class="glass glass-h rounded-xl px-5 py-2.5 text-gray-300 text-sm font-medium transition-all" ${idx>=total-1?'disabled style="opacity:.4"':''}>Next → <span class="text-gray-600 text-[10px] ml-1">[→/D]</span></button>
+      <button onclick="fcNext()" class="glass glass-h rounded-xl px-5 py-2.5 text-gray-300 text-sm font-medium transition-all">Next → <span class="text-gray-600 text-[10px] ml-1">[→/D]</span></button>
     </div>
     <div class="text-center"><button onclick="goHome()" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 mx-auto transition-all">Home <span class="text-gray-500 text-xs ml-1 font-medium">[Esc]</span></button></div>`;
   document.onkeydown=handleFlashcardKey;
