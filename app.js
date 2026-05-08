@@ -400,6 +400,18 @@ function showResults(){
   document.onkeydown=function(e){if(e.key==='Escape'||e.key==='Backspace'){e.preventDefault();goHome();}};
 }
 
+// ── Speech ──
+function speakKana(text){
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='ja-JP';u.rate=0.8;u.pitch=1;
+  const voices=window.speechSynthesis.getVoices();
+  const jp=voices.find(v=>v.lang.startsWith('ja'));
+  if(jp)u.voice=jp;
+  window.speechSynthesis.speak(u);
+}
+
 // ── Kana Sheet ──
 function showSheet(){
   state.sheetType = state.kanaType || 'hiragana';
@@ -451,7 +463,7 @@ function renderSheet(){
       if(!collision) {
         for(let j=0; j<5; j++) {
           if(cells[j]) {
-            html += `<div class="glass glass-h rounded px-0 py-2 text-center flex flex-col items-center justify-center hover:scale-110 shadow-sm transition-transform"><span class="text-2xl lg:text-[28px] font-jp text-white leading-none mb-1 lg:mb-1.5">${cells[j][0]}</span><span class="text-[11px] lg:text-xs text-gray-400 font-medium leading-none">${cells[j][1]}</span></div>`;
+            html += `<div class="glass glass-h rounded px-0 py-2 text-center flex flex-col items-center justify-center hover:scale-110 shadow-sm transition-transform cursor-pointer" onclick="speakKana('${cells[j][0]}')"><span class="text-2xl lg:text-[28px] font-jp text-white leading-none mb-1 lg:mb-1.5">${cells[j][0]}</span><span class="text-[11px] lg:text-xs text-gray-400 font-medium leading-none">${cells[j][1]}</span></div>`;
           } else {
             html += `<div></div>`;
           }
@@ -459,14 +471,14 @@ function renderSheet(){
       } else {
         html += `<div class="col-span-5 flex gap-1 lg:gap-1.5 flex-nowrap justify-center">`;
         displayRow.forEach(cell => {
-           html += `<div class="glass glass-h rounded px-1 py-2 text-center flex flex-col items-center justify-center flex-1 min-w-[36px] hover:scale-110 shadow-sm transition-transform whitespace-nowrap"><span class="text-2xl lg:text-[28px] font-jp text-white leading-none mb-1 lg:mb-1.5">${cell[0]}</span><span class="text-[11px] lg:text-xs text-gray-400 font-medium leading-none">${cell[1]}</span></div>`;
+           html += `<div class="glass glass-h rounded px-1 py-2 text-center flex flex-col items-center justify-center flex-1 min-w-[36px] hover:scale-110 shadow-sm transition-transform whitespace-nowrap cursor-pointer" onclick="speakKana('${cell[0]}')"><span class="text-2xl lg:text-[28px] font-jp text-white leading-none mb-1 lg:mb-1.5">${cell[0]}</span><span class="text-[11px] lg:text-xs text-gray-400 font-medium leading-none">${cell[1]}</span></div>`;
         });
         html += `</div>`;
       }
       
       if(hasN && nCell) {
           html += `<div class="text-xs lg:text-sm font-bold text-fuji-400 self-center text-center uppercase">n</div>`;
-          html += `<div class="glass glass-h rounded px-0 py-2 text-center flex flex-col items-center justify-center hover:scale-110 shadow-sm transition-transform"><span class="text-2xl lg:text-[28px] font-jp text-white leading-none mb-1 lg:mb-1.5">${nCell[0]}</span><span class="text-[11px] lg:text-xs text-gray-400 font-medium leading-none">${nCell[1]}</span></div>`;
+          html += `<div class="glass glass-h rounded px-0 py-2 text-center flex flex-col items-center justify-center hover:scale-110 shadow-sm transition-transform cursor-pointer" onclick="speakKana('${nCell[0]}')"><span class="text-2xl lg:text-[28px] font-jp text-white leading-none mb-1 lg:mb-1.5">${nCell[0]}</span><span class="text-[11px] lg:text-xs text-gray-400 font-medium leading-none">${nCell[1]}</span></div>`;
           html += `<div class="col-span-4"></div>`;
       }
     });
@@ -630,6 +642,8 @@ function hideModal(id){
 document.addEventListener('DOMContentLoaded',()=>{
   renderKanaRows();updateSelectionUI();selectQuizMode('type');
   document.onkeydown=homeKeyHandler;
+  // Preload speech voices
+  if(window.speechSynthesis){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();}
   let saved=localStorage.getItem('kana-theme');
   if(!saved) { saved = 'minimal'; localStorage.setItem('kana-theme', saved); }
   setTheme(saved);
