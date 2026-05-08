@@ -107,6 +107,13 @@
         .stroke-svg { filter: invert(0.8) sepia(1) hue-rotate(180deg) saturate(3) opacity(0.7); }
         body.theme-light .stroke-svg { filter: opacity(0.4); }
         body.theme-minimal .stroke-svg { filter: opacity(0.3); }
+        /* Flashcard */
+        .fc-scene { perspective: 800px; }
+        .fc-card { width: 260px; height: 320px; position: relative; transition: transform 0.6s cubic-bezier(.4,0,.2,1); transform-style: preserve-3d; cursor: pointer; }
+        .fc-card.flipped { transform: rotateY(180deg); }
+        .fc-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .fc-back { transform: rotateY(180deg); }
+        .fc-dir-btn { transition: all .3s; }
     </style>
 </head>
 <body class="min-h-screen text-gray-200">
@@ -190,12 +197,12 @@
     </section>
 
     <!-- ==================== PAGE: QUIZ MODE ==================== -->
-    <section id="page-quiz-mode" class="page hidden max-w-3xl mx-auto px-4 py-12">
+    <section id="page-quiz-mode" class="page hidden max-w-4xl mx-auto px-4 py-12">
         <div class="text-center mb-8">
             <h2 class="text-3xl font-bold grad-text mb-2">Choose Quiz Mode</h2>
             <p class="text-gray-400 text-sm">How would you like to practice?</p>
         </div>
-        <div class="grid sm:grid-cols-2 gap-6">
+        <div class="grid sm:grid-cols-3 gap-6">
             <div id="mode-type" class="glass glass-h rounded-2xl p-6 cursor-pointer transition-all sel-glow text-center">
                 <div class="w-16 h-16 rounded-2xl bg-sakura-500/10 border border-sakura-500/20 flex items-center justify-center mx-auto mb-4">
                     <span class="text-3xl font-jp text-sakura-400">あ</span>
@@ -220,6 +227,50 @@
                 <p class="text-gray-500 text-xs">See romaji, choose the correct kana</p>
                 <div class="mode-check hidden mt-4 text-sakura-400 text-xs font-medium">✓ Selected</div>
             </div>
+            <div id="mode-flashcard" class="glass glass-h rounded-2xl p-6 cursor-pointer transition-all text-center">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-sakura-500/10 to-fuji-500/10 border border-sakura-500/15 flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl font-jp text-sakura-400">あ</span>
+                </div>
+                <div class="text-2xl text-gray-500 mb-4">⟲</div>
+                <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-white/10 flex items-center justify-center mx-auto mb-4">
+                    <span class="text-lg font-semibold text-fuji-400">a</span>
+                </div>
+                <h3 class="text-white font-semibold mb-1">Flashcard</h3>
+                <p class="text-gray-500 text-xs">Flip cards to memorize kana</p>
+                <div class="mode-check hidden mt-4 text-sakura-400 text-xs font-medium">✓ Selected</div>
+            </div>
+        </div>
+        <!-- Flashcard direction options -->
+        <div id="fc-options" class="hidden mt-6">
+            <div class="glass rounded-2xl p-5 max-w-2xl mx-auto">
+                <p class="text-xs text-gray-500 uppercase tracking-wider mb-4 text-center">Flashcard Direction</p>
+                <div class="grid grid-cols-3 gap-3">
+                    <button id="fc-dir-kana" class="fc-dir-btn glass glass-h rounded-xl p-4 text-center transition-all sel-glow" onclick="setFlashcardDir('kana')">
+                        <div class="text-2xl font-jp text-sakura-400 mb-2">あ → a</div>
+                        <div class="text-xs font-semibold text-white mb-2">Kana → Romaji</div>
+                        <div class="space-y-1">
+                            <div class="text-[10px] text-gray-500"><span class="text-gray-400 font-medium">Front:</span> Kana</div>
+                            <div class="text-[10px] text-gray-500"><span class="text-gray-400 font-medium">Back:</span> Romaji</div>
+                        </div>
+                    </button>
+                    <button id="fc-dir-romaji" class="fc-dir-btn glass glass-h rounded-xl p-4 text-center transition-all" onclick="setFlashcardDir('romaji')">
+                        <div class="text-2xl font-semibold text-fuji-400 mb-2">a → あ</div>
+                        <div class="text-xs font-semibold text-white mb-2">Romaji → Kana</div>
+                        <div class="space-y-1">
+                            <div class="text-[10px] text-gray-500"><span class="text-gray-400 font-medium">Front:</span> Romaji</div>
+                            <div class="text-[10px] text-gray-500"><span class="text-gray-400 font-medium">Back:</span> Kana</div>
+                        </div>
+                    </button>
+                    <button id="fc-dir-random" class="fc-dir-btn glass glass-h rounded-xl p-4 text-center transition-all" onclick="setFlashcardDir('random')">
+                        <div class="text-2xl text-amber-400 mb-2">🎲</div>
+                        <div class="text-xs font-semibold text-white mb-2">Random</div>
+                        <div class="space-y-1">
+                            <div class="text-[10px] text-gray-500"><span class="text-gray-400 font-medium">Front:</span> Random</div>
+                            <div class="text-[10px] text-gray-500"><span class="text-gray-400 font-medium">Back:</span> Random</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
         </div>
         <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
             <button onclick="goHome()" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 transition-all">Home <span class="text-gray-500 text-xs ml-1 font-medium">[Esc]</span></button>
@@ -230,6 +281,11 @@
     <!-- ==================== PAGE: QUIZ ==================== -->
     <section id="page-quiz" class="page hidden max-w-3xl mx-auto px-4 py-12">
         <div id="quiz-content"></div>
+    </section>
+
+    <!-- ==================== PAGE: FLASHCARD ==================== -->
+    <section id="page-flashcard" class="page hidden max-w-3xl mx-auto px-4 py-12">
+        <div id="flashcard-content"></div>
     </section>
 
     <!-- ==================== PAGE: KANA SHEET ==================== -->

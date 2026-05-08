@@ -86,8 +86,9 @@ const KANA = {
 const state = {
   kanaType: 'hiragana', font: 'Noto Sans JP', sheetType: 'hiragana',
   selected: { main: new Set(), dakuten: new Set(), combination: new Set() },
-  quizMode: 'type',
+  quizMode: 'type', flashcardDir: 'kana',
   quiz: { questions: [], currentIndex: 0, startTime: null, rows: [], waitingForNext: false, currentOptions: [] },
+  fc: { cards: [], index: 0, flipped: false },
 };
 
 // ── Helpers ──
@@ -169,11 +170,25 @@ function updateSelectionUI(){
 // ── Quiz Mode Selection ──
 function selectQuizMode(m){
   state.quizMode=m;
-  $('#mode-type').classList.toggle('sel-glow',m==='type');$('#mode-choose').classList.toggle('sel-glow',m==='choose');
-  $('#mode-type .mode-check').classList.toggle('hidden',m!=='type');$('#mode-choose .mode-check').classList.toggle('hidden',m!=='choose');
+  $('#mode-type').classList.toggle('sel-glow',m==='type');$('#mode-choose').classList.toggle('sel-glow',m==='choose');$('#mode-flashcard').classList.toggle('sel-glow',m==='flashcard');
+  $('#mode-type .mode-check').classList.toggle('hidden',m!=='type');$('#mode-choose .mode-check').classList.toggle('hidden',m!=='choose');$('#mode-flashcard .mode-check').classList.toggle('hidden',m!=='flashcard');
+  $('#fc-options').classList.toggle('hidden',m!=='flashcard');
+  if(m==='flashcard'){
+    syncFlashcardDirUI();
+  }
+}
+function syncFlashcardDirUI(){
+  ['kana','romaji','random'].forEach(d=>{
+    $('#fc-dir-'+d).classList.toggle('sel-glow',d===state.flashcardDir);
+  });
+}
+function setFlashcardDir(dir){
+  state.flashcardDir=dir;
+  syncFlashcardDirUI();
 }
 function beginQuiz(){
   const sel=getSelectedKana();if(!sel.length)return;
+  if(state.quizMode==='flashcard'){beginFlashcard(sel);return;}
   state.quiz.questions=shuffle(sel).map(k=>({...k,answered:false,correct:false,misses:0}));
   state.quiz.currentIndex=0;state.quiz.startTime=Date.now();state.quiz.rows=getSelectedRows();state.quiz.waitingForNext=false;
   showPage('page-quiz');state.quizMode==='type'?renderTypeQuiz():renderChooseQuiz();
@@ -335,8 +350,8 @@ function handleComplete(){const u=state.quiz.questions.filter(x=>!x.answered).le
 function homeKeyHandler(e){
   if(!$('#modal-home').classList.contains('hidden')||!$('#modal-incomplete').classList.contains('hidden'))return;
   if(e.key==='Escape'){if(!$('#page-quiz-mode').classList.contains('hidden')){e.preventDefault();goHome();}return;}
-  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){if(!$('#page-quiz-mode').classList.contains('hidden')){e.preventDefault();selectQuizMode('type');}}
-  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){if(!$('#page-quiz-mode').classList.contains('hidden')){e.preventDefault();selectQuizMode('choose');}}
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){if(!$('#page-quiz-mode').classList.contains('hidden')){e.preventDefault();const modes=['type','choose','flashcard'];const ci=modes.indexOf(state.quizMode);selectQuizMode(modes[(ci-1+3)%3]);}}
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){if(!$('#page-quiz-mode').classList.contains('hidden')){e.preventDefault();const modes=['type','choose','flashcard'];const ci=modes.indexOf(state.quizMode);selectQuizMode(modes[(ci+1)%3]);}}
   if(e.key==='Enter'||e.code==='NumpadEnter'){
     if(!$('#page-selection').classList.contains('hidden')){
       const btn=$('#btn-start-quiz');
@@ -633,6 +648,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('#btn-sheet-katakana').addEventListener('click',()=>setSheetType('katakana'));
   $('#mode-type').addEventListener('click',()=>selectQuizMode('type'));
   $('#mode-choose').addEventListener('click',()=>selectQuizMode('choose'));
+  $('#mode-flashcard').addEventListener('click',()=>selectQuizMode('flashcard'));
   $('#btn-begin-quiz').addEventListener('click',beginQuiz);
   $('#modal-home-cancel').addEventListener('click',()=>hideModal('modal-home'));
   $('#modal-home-confirm').addEventListener('click',goHome);
@@ -641,6 +657,72 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('#btn-writing').addEventListener('click',startWritingPractice);
   $('#btn-number').addEventListener('click',showNumberMenu);
 });
+
+// ── Flashcard Mode ──
+function beginFlashcard(sel){
+  const cards=shuffle(sel);
+  state.fc.cards=cards;state.fc.index=0;state.fc.flipped=false;
+  showPage('page-flashcard');
+  renderFlashcard();
+}
+function getFlashcardSide(item){
+  const dir=state.flashcardDir;
+  if(dir==='kana') return {front:{label:'Kana',text:item.char,cls:'text-7xl font-jp'},back:{label:'Romaji',text:item.romaji,cls:'text-4xl font-bold'}};
+  if(dir==='romaji') return {front:{label:'Romaji',text:item.romaji,cls:'text-4xl font-bold'},back:{label:'Kana',text:item.char,cls:'text-7xl font-jp'}};
+  // random per card
+  const showKana=Math.random()<0.5;
+  if(showKana) return {front:{label:'Kana',text:item.char,cls:'text-7xl font-jp'},back:{label:'Romaji',text:item.romaji,cls:'text-4xl font-bold'}};
+  return {front:{label:'Romaji',text:item.romaji,cls:'text-4xl font-bold'},back:{label:'Kana',text:item.char,cls:'text-7xl font-jp'}};
+}
+function renderFlashcard(){
+  const fc=state.fc,cards=fc.cards,idx=fc.index,total=cards.length;
+  if(idx>=total){$('#flashcard-content').innerHTML=`<div class="text-center py-16"><div class="text-6xl mb-4">🎴</div><h2 class="text-3xl font-bold grad-text mb-2">All Cards Reviewed!</h2><p class="text-gray-400 mb-4">${total} cards completed</p><div class="flex flex-col sm:flex-row justify-center gap-4"><button onclick="state.fc.index=0;state.fc.flipped=false;state.fc.cards=shuffle(state.fc.cards);renderFlashcard()" class="btn-s rounded-xl px-8 py-3.5 text-white font-bold text-sm shadow-lg shadow-fuji-500/20 transition-all">Shuffle & Restart ⟲</button><button onclick="goHome()" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm transition-all">Home <span class="text-gray-500 text-xs ml-1">[Esc]</span></button></div></div>`;document.onkeydown=function(e){if(e.key==='Escape'){e.preventDefault();goHome();}if(e.key==='Enter'){e.preventDefault();state.fc.index=0;state.fc.flipped=false;state.fc.cards=shuffle(state.fc.cards);renderFlashcard();}};return;}
+  const item=cards[idx];
+  const side=getFlashcardSide(item);
+  const pct=total?(idx/total*100):0;
+  const lab=state.kanaType==='hiragana'?'Hiragana':'Katakana';
+  const dirLabel=state.flashcardDir==='kana'?'Kana → Romaji':state.flashcardDir==='romaji'?'Romaji → Kana':'Random';
+  fc.flipped=false;
+  $('#flashcard-content').innerHTML=`
+    <div class="text-center mb-2"><p class="text-xs text-gray-500 uppercase tracking-wider mb-1">${lab} — Flashcard · ${dirLabel}</p><h2 class="text-2xl font-bold text-white">Flashcard</h2></div>
+    <div class="max-w-md mx-auto my-4"><div class="flex justify-between text-xs text-gray-500 mb-1"><span>Card ${idx+1} of ${total}</span><span>${Math.round(pct)}%</span></div><div class="w-full bg-dark-700 rounded-full h-2"><div class="bg-gradient-to-r from-sakura-500 to-fuji-500 h-2 rounded-full transition-all duration-300" style="width:${pct}%"></div></div></div>
+    <div class="fc-scene flex justify-center my-10" id="fc-scene">
+      <div class="fc-card" id="fc-card" onclick="flipCard()">
+        <div class="fc-face glass border border-white/10 shadow-2xl">
+          <p class="text-xs text-gray-500 uppercase tracking-wider mb-3">${side.front.label}</p>
+          <div class="${side.front.cls} text-white mb-3" style="line-height:1">${side.front.text}</div>
+          <p class="text-xs text-gray-600 mt-2">Click or press Space to flip</p>
+        </div>
+        <div class="fc-face fc-back glass border border-sakura-500/30 shadow-2xl shadow-sakura-500/10">
+          <p class="text-xs text-sakura-400 uppercase tracking-wider mb-3">${side.back.label}</p>
+          <div class="${side.back.cls} text-white mb-3" style="line-height:1">${side.back.text}</div>
+          <p class="text-xs text-gray-500 mt-2">→ Next card</p>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-center flex-wrap gap-3 mb-6">
+      <button onclick="fcPrev()" class="glass glass-h rounded-xl px-5 py-2.5 text-gray-300 text-sm font-medium transition-all" ${idx===0?'disabled style="opacity:.4"':''}>← Prev <span class="text-gray-600 text-[10px] ml-1">[←/A]</span></button>
+      <button onclick="flipCard()" class="glass glass-h rounded-xl px-5 py-2.5 text-gray-300 text-sm font-medium transition-all">Flip ⟲ <span class="text-gray-600 text-[10px] ml-1">[Space]</span></button>
+      <button onclick="fcNext()" class="glass glass-h rounded-xl px-5 py-2.5 text-gray-300 text-sm font-medium transition-all" ${idx>=total-1?'disabled style="opacity:.4"':''}>Next → <span class="text-gray-600 text-[10px] ml-1">[→/D]</span></button>
+    </div>
+    <div class="text-center"><button onclick="goHome()" class="glass glass-h rounded-xl px-6 py-3.5 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 mx-auto transition-all">Home <span class="text-gray-500 text-xs ml-1 font-medium">[Esc]</span></button></div>`;
+  document.onkeydown=handleFlashcardKey;
+}
+function flipCard(){
+  const card=$('#fc-card');if(!card)return;
+  state.fc.flipped=!state.fc.flipped;
+  card.classList.toggle('flipped',state.fc.flipped);
+}
+function fcPrev(){if(state.fc.index>0){state.fc.index--;state.fc.flipped=false;renderFlashcard();}}
+function fcNext(){state.fc.index++;state.fc.flipped=false;renderFlashcard();}
+function handleFlashcardKey(e){
+  if(!$('#modal-home').classList.contains('hidden'))return;
+  if(e.key==='Escape'){e.preventDefault();goHome();return;}
+  if(e.key===' '||e.code==='Space'){e.preventDefault();flipCard();return;}
+  if(e.key==='Enter'||e.code==='NumpadEnter'){e.preventDefault();if(state.fc.flipped)fcNext();else flipCard();return;}
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){e.preventDefault();fcNext();return;}
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){e.preventDefault();fcPrev();return;}
+}
 
 // ── Number Learning ──
 const NUMBER_CATEGORIES = [
